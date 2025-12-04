@@ -31,11 +31,11 @@ def clean_transactions_pipeline(parent_group):
         input_file = Path('/opt/data/customer_transactions.csv')
         output_file = Path('/opt/data/customer_transactions_cleaned.csv')
 
-        print(f"[{parent_group}] Reading input file: {input_file}")
+        print(f"Reading input file: {input_file}")
         df = pd.read_csv(input_file)
 
-        print(f"[{parent_group}] Original data shape: {df.shape}")
-        print(f"[{parent_group}] Applying transformations...")
+        print(f"Original data shape: {df.shape}")
+        print(f"Applying transformations...")
 
         # Apply cleaning functions
         df['transaction_id'] = df['transaction_id'].apply(clean_transaction_id)
@@ -58,12 +58,13 @@ def clean_transactions_pipeline(parent_group):
         df['tax'] = df['tax'].astype('float64')
 
         # Save cleaned data with proper NULL handling for PostgreSQL
-        print(f"[{parent_group}] Saving cleaned data to: {output_file}")
+        print(f" Saving cleaned data to: {output_file}")
+        
         # Convert pandas NA to empty string, which will be treated as NULL by PostgreSQL
         df.to_csv(output_file, index=False, na_rep='')
 
-        print(f"[{parent_group}] Cleaned data shape: {df.shape}")
-        print(f"\n[{parent_group}] Data Quality Summary:")
+        print(f" Cleaned data shape: {df.shape}")
+        print(f"\n Data Quality Summary:")
         print(f"Total rows: {len(df)}")
         print(f"Null values per column:\n{df.isnull().sum()}")
 

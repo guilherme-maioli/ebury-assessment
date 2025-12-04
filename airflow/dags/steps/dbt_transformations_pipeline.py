@@ -1,7 +1,3 @@
-"""
-DBT transformations pipeline using Cosmos.
-"""
-
 from pathlib import Path
 from cosmos import DbtTaskGroup, ProjectConfig, ProfileConfig, ExecutionConfig, RenderConfig
 
@@ -25,8 +21,6 @@ def dbt_transformations_pipeline(parent_group):
     DBT_PROFILES_PATH = Path('/opt/dbt')
 
     # Create dbt task group using Cosmos
-    # By not specifying 'select' in RenderConfig, it will run all models in the project
-    # Note: dag parameter is omitted - it will be inherited from the @dag decorator context
     dbt_tg = DbtTaskGroup(
         group_id='dbt_models',
         project_config=ProjectConfig(
@@ -42,10 +36,10 @@ def dbt_transformations_pipeline(parent_group):
         ),
         render_config=RenderConfig(
             # No select parameter = run all models in the project
-            dbt_deps=True,  # Match with operator_args['install_deps']
+            dbt_deps=True,  
         ),
         operator_args={
-            'install_deps': True,  # Let Cosmos handle dbt deps automatically
+            'install_deps': True,  
         },
     )
 

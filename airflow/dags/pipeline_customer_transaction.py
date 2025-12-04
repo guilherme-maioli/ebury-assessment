@@ -15,7 +15,7 @@ from airflow.utils.task_group import TaskGroup
 from steps.clean_transactions_pipeline import clean_transactions_pipeline
 from steps.load_to_postgres_pipeline import load_to_postgres_pipeline
 from steps.dbt_transformations_pipeline import dbt_transformations_pipeline
-
+from utils.notification import notification_failed_task_slack
 
 # Default arguments
 default_args = {
@@ -26,6 +26,7 @@ default_args = {
     'email_on_retry': False,
     'retries': 1,
     'retry_delay': timedelta(minutes=2),
+    #'on_failure_callback': notification_failed_task_slack
 }
 
 # DAG ID
