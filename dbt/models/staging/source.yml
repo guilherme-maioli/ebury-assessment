@@ -1,0 +1,71 @@
+version: 2
+
+sources:
+  - name: raw_data
+    schema: raw_data
+    description: Raw data loaded directly from CSV with all VARCHAR columns
+    loader: airflow
+
+    freshness:
+      warn_after: { count: 12, period: hour }
+      error_after: { count: 24, period: hour }
+    loaded_at_field: loaded_at
+
+    tables:
+      - name: customer_transactions
+        description: Raw customer transaction data (all columns as VARCHAR)
+
+  - name: cleaned_data
+    schema: cleaned_data
+    description: Cleaned and validated transaction data with proper data types
+    loader: airflow
+
+    freshness:
+      warn_after: { count: 12, period: hour }
+      error_after: { count: 24, period: hour }
+    loaded_at_field: loaded_at
+
+    tables:
+      - name: customer_transactions
+        description: >
+          Cleaned customer transaction data with:
+          - Proper data types (INTEGER, DATE, NUMERIC)
+          - Standardized formats
+          - NULL handling
+        columns:
+          - name: transaction_id
+            description: Unique transaction identifier (cleaned, no prefix)
+            tests:
+              - not_null
+
+          - name: customer_id
+            description: Customer identifier
+
+          - name: transaction_date
+            description: Date of transaction (standardized to yyyy-mm-dd)
+            tests:
+              - not_null
+
+          - name: product_id
+            description: Product identifier (cleaned, no prefix)
+            tests:
+              - not_null
+
+          - name: product_name
+            description: Name of the product
+
+          - name: quantity
+            description: Quantity purchased
+
+          - name: price
+            description: Unit price (cleaned from text values)
+            tests:
+              - not_null
+
+          - name: tax
+            description: Tax amount (cleaned from text values)
+            tests:
+              - not_null
+
+          - name: loaded_at
+            description: Timestamp when data was loaded into database

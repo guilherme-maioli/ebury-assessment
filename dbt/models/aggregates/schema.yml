@@ -1,0 +1,216 @@
+version: 2
+
+models:
+  - name: agg_monthly_sales
+    description: |
+      Monthly sales aggregation providing pre-calculated metrics for customer sales performance.
+
+      Grain: One row per customer per month
+
+      This aggregate model:
+      - Consolidates transaction data at monthly level
+      - Calculates key revenue and volume metrics
+      - Provides month-over-month growth analysis
+      - Optimizes dashboard and reporting queries
+      - Supports customer segmentation and trend analysis
+
+      Use cases:
+      - Monthly revenue reporting and dashboards
+      - Customer sales trends and patterns
+      - Growth rate analysis
+      - Customer segmentation by monthly activity
+
+    config:
+      tags: ['aggregates', 'monthly-sales', 'reporting']
+
+    columns:
+      # Primary Key Components
+      - name: customer_fk
+        description: Foreign key to dim_customers - part of composite key
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_customers')
+              field: customer_key
+              severity: warn
+
+      - name: transaction_month
+        description: First day of the month - part of composite key
+        tests:
+          - not_null
+
+      - name: transaction_year
+        description: Year of the transactions
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              min_value: 2020
+              max_value: 2030
+              inclusive: true
+
+      - name: transaction_quarter
+        description: Quarter (1-4) of the transactions
+        tests:
+          - not_null
+          - accepted_values:
+              values: [1, 2, 3, 4]
+
+      # Transaction Volume Metrics
+      - name: transaction_count
+        description: Total number of transactions for this customer in this month (additive)
+        tests:
+          - not_null
+          - dbt_utils.expression_is_true:
+              expression: ">= 1"
+              config:
+                severity: error
+
+      - name: unique_products_purchased
+        description: Count of distinct products purchased in this month (non-additive)
+        tests:
+          - not_null
+          - dbt_utils.expression_is_true:
+              expression: ">= 1"
+          - dbt_utils.expression_is_true:
+              expression: "<= transaction_count"
+              config:
+                severity: warn
+
+      - name: total_units
+        description: Sum of all units sold to this customer in this month (additive)
+        tests:
+          - not_null
+          - dbt_utils.expression_is_true:
+              expression: ">= 0"
+
+      - name: avg_units_per_transaction
+        description: Average number of units per transaction (non-additive)
+        tests:
+          - not_null
+          - dbt_utils.expression_is_true:
+              expression: "> 0"
+
+      # Revenue Metrics
+      - name: monthly_gross_revenue
+        description: Total gross revenue (price * quantity) for the month (additive)
+        tests:
+          - not_null
+          - dbt_utils.expression_is_true:
+              expression: ">= 0"
+
+      - name: monthly_tax
+        description: Total tax collected for the month (additive)
+        tests:
+          - not_null
+          - dbt_utils.expression_is_true:
+              expression: ">= 0"
+
+      - name: monthly_net_revenue
+        description: Total net revenue including tax for the month (additive)
+        tests:
+          - not_null
+          - dbt_utils.expression_is_true:
+              expression: ">= 0"
+
+      - name: monthly_revenue_excluding_tax
+        description: Total revenue excluding tax for the month (additive)
+        tests:
+          - not_null
+          - dbt_utils.expression_is_true:
+              expression: ">= 0"
+
+      - name: avg_revenue_per_transaction
+        description: Average net revenue per transaction (non-additive)
+        tests:
+          - not_null
+          - dbt_utils.expression_is_true:
+              expression: ">= 0"
+
+      # Price Analytics
+      - name: avg_unit_price
+        description: Average unit price across all transactions (non-additive)
+        tests:
+          - not_null
+          - dbt_utils.expression_is_true:
+              expression: "> 0"
+
+      - name: min_unit_price
+        description: Minimum unit price in the month (non-additive)
+        tests:
+          - not_null
+          - dbt_utils.expression_is_true:
+              expression: "> 0"
+
+      - name: max_unit_price
+        description: Maximum unit price in the month (non-additive)
+        tests:
+          - not_null
+          - dbt_utils.expression_is_true:
+              expression: "> 0"
+          - dbt_utils.expression_is_true:
+              expression: ">= min_unit_price"
+              config:
+                severity: error
+
+      # Growth Metrics
+      - name: previous_month_revenue
+        description: Net revenue from the previous month for this customer (for MoM comparison)
+
+      - name: previous_month_transactions
+        description: Transaction count from the previous month for this customer (for MoM comparison)
+
+      - name: revenue_growth_pct
+        description: Month-over-month revenue growth percentage (can be negative)
+        tests:
+          - dbt_utils.expression_is_true:
+              expression: "IS NULL OR (revenue_growth_pct >= -100)"
+              config:
+                severity: warn
+
+      - name: transaction_growth_pct
+        description: Month-over-month transaction count growth percentage (can be negative)
+        tests:
+          - dbt_utils.expression_is_true:
+              expression: "IS NULL OR (transaction_growth_pct >= -100)"
+              config:
+                severity: warn
+
+      # Customer Attributes (Denormalized)
+      - name: customer_tier
+        description: Customer tier classification (denormalized from dimension)
+        tests:
+          - not_null
+
+      - name: customer_value_segment
+        description: Customer value segment (denormalized from dimension)
+        tests:
+          - not_null
+
+      # Audit
+      - name: refreshed_at
+        description: Timestamp when this aggregate record was last refreshed
+        tests:
+          - not_null
+
+    # Model-level tests
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - customer_fk
+            - transaction_month
+          config:
+            severity: error
+
+      # Ensure revenue calculations are consistent
+      - dbt_utils.expression_is_true:
+          expression: "ABS(monthly_net_revenue - (monthly_gross_revenue + monthly_tax)) < 0.01"
+          config:
+            severity: error
+            error_if: ">0"
+            warn_if: ">0"
+
+      # Ensure revenue excluding tax makes sense
+      - dbt_utils.expression_is_true:
+          expression: "monthly_revenue_excluding_tax <= monthly_net_revenue"
+          config:
+            severity: warn

@@ -1,0 +1,26 @@
+ebury:
+  target: dev
+  outputs:
+    dev:
+      type: postgres
+      host: postgres
+      user: airflow
+      password: airflow
+      port: 5432
+      dbname: ebury
+      schema: analytics_dbt
+      threads: 4
+
+      
+    prod:
+      type: postgres
+      host: postgres
+      user: airflow
+      password: airflow
+      port: 5432
+      dbname: ebury
+      schema: analytics
+      threads: 8
+
+
+

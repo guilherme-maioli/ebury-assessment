@@ -1,0 +1,74 @@
+# Environment variables
+.env
+.env.*.local
+.env.local
+.env.production
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+.coverage
+htmlcov/
+*.log
+
+# Airflow
+airflow/logs/
+airflow/logs/**
+airflow/plugins/__pycache__/
+airflow/dags/__pycache__/
+**/__pycache__/
+**/*.pyc
+airflow/*.pid
+airflow/*.cfg.lock
+airflow/airflow.db
+airflow/airflow.cfg
+airflow/webserver_config.py
+airflow/standalone_admin_password.txt
+
+# dbt
+dbt/logs/
+dbt/target/
+dbt/dbt_packages/
+dbt/dbt_modules/
+dbt/.user.yml
+
+# Docker
+*.pid
+*.seed
+*.pid.lock
+
+# PostgreSQL
+*.sql.bak
+*.backup
+
+# Data files (CSV, Excel, etc.) - uncomment if you don't want to commit data files
+# data/*.csv
+# data/*.xlsx
+# data/*.parquet
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Jupyter Notebooks
+.ipynb_checkpoints/
+*.ipynb
+
+# Logs
+*.log
+logs/
+
+dbt/package-lock.yml
+
+Case Study - Data Platform Engineering.pdf

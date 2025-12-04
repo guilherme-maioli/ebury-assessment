@@ -1,0 +1,116 @@
+version: 2
+
+models:
+  - name: stg_customer_transactions
+    description: |
+      Staged and cleaned customer transaction data.
+
+      This model:
+      - Reads from cleaned_data.customer_transactions
+      - Adds temporal dimensions (month, year, quarter)
+      - Calculates subtotal and total_amount
+      - Includes data quality validation flags
+      - Handles NULL values appropriately
+
+    columns:
+      - name: transaction_id
+        description: Unique identifier for each transaction
+        tests:
+          - unique
+          - not_null
+
+      - name: customer_id
+        description: Customer identifier (can be NULL for some transactions)
+
+      - name: product_id
+        description: Product identifier
+        tests:
+          - not_null
+
+      - name: transaction_date
+        description: Date when the transaction occurred (standardized format)
+        tests:
+          - not_null
+
+      - name: transaction_month
+        description: First day of the month when the transaction occurred
+        tests:
+          - not_null
+
+      - name: transaction_year
+        description: Year when the transaction occurred
+        tests:
+          - not_null
+
+      - name: transaction_quarter
+        description: Quarter (1-4) when the transaction occurred
+        tests:
+          - not_null
+
+      - name: month_number
+        description: Month number (1-12)
+        tests:
+          - not_null
+
+      - name: month_name
+        description: Month name (January, February, etc.)
+        tests:
+          - not_null
+
+      - name: day_name
+        description: Day of week name (Monday, Tuesday, etc.)
+        tests:
+          - not_null
+
+      - name: product_name
+        description: Product name
+        tests:
+          - not_null
+
+      - name: quantity
+        description: Number of units sold (can be NULL)
+
+      - name: unit_price
+        description: Price per unit
+        tests:
+          - not_null
+
+      - name: tax_amount
+        description: Tax applied to the transaction
+        tests:
+          - not_null
+
+      - name: subtotal
+        description: Calculated as quantity * unit_price (can be NULL if quantity is NULL)
+
+      - name: total_amount
+        description: Calculated as subtotal + tax_amount (can be NULL if quantity is NULL)
+
+      - name: is_valid_quantity
+        description: Flag indicating if quantity is valid (not NULL and > 0)
+        tests:
+          - not_null
+          - accepted_values:
+              values: [true, false]
+
+      - name: is_valid_price
+        description: Flag indicating if price is valid (not NULL and > 0)
+        tests:
+          - not_null
+          - accepted_values:
+              values: [true, false]
+
+      - name: is_valid_transaction
+        description: Flag indicating if transaction has valid customer_id, quantity, and price
+        tests:
+          - not_null
+          - accepted_values:
+              values: [true, false]
+
+      - name: loaded_at
+        description: Timestamp when the data was loaded into the database
+
+      - name: transformed_at
+        description: Timestamp when the data was transformed in staging
+        tests:
+          - not_null

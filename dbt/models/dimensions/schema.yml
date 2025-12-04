@@ -1,0 +1,281 @@
+version: 2
+
+models:
+  - name: dim_customers
+    description: |
+      Customer dimension table with aggregated metrics and segmentation.
+
+      Slowly Changing Dimension Type 1 - overwrites customer attributes with each refresh.
+
+      Key Features:
+      - Customer lifetime value and transaction history
+      - Recency, frequency metrics
+      - Customer segmentation (status, tier, value)
+      - Behavioral analytics
+
+    columns:
+      - name: customer_key
+        description: Primary key for the customer dimension
+        tests:
+          - unique
+          - not_null
+
+      - name: customer_id
+        description: Business key for the customer
+        tests:
+          - unique
+          - not_null
+
+      - name: total_transactions
+        description: Total number of transactions made by the customer
+        tests:
+          - not_null
+
+      - name: unique_transaction_days
+        description: Number of unique days the customer made purchases
+        tests:
+          - not_null
+
+      - name: years_active
+        description: Number of unique years the customer has been active
+        tests:
+          - not_null
+
+      - name: months_active
+        description: Number of unique months the customer has been active
+        tests:
+          - not_null
+
+      - name: unique_products_purchased
+        description: Number of unique products purchased by the customer
+        tests:
+          - not_null
+
+      - name: first_transaction_date
+        description: Date of customer's first transaction
+        tests:
+          - not_null
+
+      - name: last_transaction_date
+        description: Date of customer's most recent transaction
+        tests:
+          - not_null
+
+      - name: days_since_last_purchase
+        description: Number of days since the customer's last transaction
+        tests:
+          - not_null
+
+      - name: customer_age_days
+        description: Number of days since customer's first purchase
+        tests:
+          - not_null
+
+      - name: total_lifetime_value
+        description: Total amount spent by the customer
+        tests:
+          - not_null
+
+      - name: avg_transaction_value
+        description: Average transaction amount for the customer
+        tests:
+          - not_null
+
+      - name: min_transaction_value
+        description: Smallest transaction amount
+        tests:
+          - not_null
+
+      - name: max_transaction_value
+        description: Largest transaction amount
+        tests:
+          - not_null
+
+      - name: total_units_purchased
+        description: Total units purchased by the customer
+        tests:
+          - not_null
+
+      - name: value_segment
+        description: Customer value segment based on lifetime value
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['VIP', 'High Value', 'Medium Value', 'Low Value']
+
+      - name: frequency_segment
+        description: Purchase frequency segment
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['Very Frequent', 'Frequent', 'Occasional', 'Rare']
+
+      - name: recency_segment
+        description: Customer recency segment based on last purchase
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['Active', 'Recent', 'Lapsed', 'Inactive']
+
+      - name: aov_tier
+        description: Average order value tier
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['High AOV', 'Medium AOV', 'Low AOV']
+
+      - name: customer_tier
+        description: Customer tier based on value and frequency
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['Platinum', 'Gold', 'Silver', 'Bronze']
+
+      - name: created_at
+        description: Timestamp when the record was created
+        tests:
+          - not_null
+
+      - name: updated_at
+        description: Timestamp when the record was last updated
+        tests:
+          - not_null
+
+  - name: dim_products
+    description: |
+      Product dimension table with aggregated metrics and segmentation.
+
+      Slowly Changing Dimension Type 1 - overwrites product attributes with each refresh.
+
+      Key Features:
+      - Product sales performance metrics
+      - Price analytics and positioning
+      - Volume and revenue segmentation
+      - Customer reach metrics
+
+    columns:
+      - name: product_key
+        description: Primary key for the product dimension
+        tests:
+          - unique
+          - not_null
+
+      - name: product_id
+        description: Business key for the product
+        tests:
+          - unique
+          - not_null
+
+      - name: product_name
+        description: Product name
+        tests:
+          - not_null
+
+      - name: total_transactions
+        description: Total number of transactions involving this product
+        tests:
+          - not_null
+
+      - name: unique_transaction_days
+        description: Number of unique days the product was sold
+        tests:
+          - not_null
+
+      - name: unique_customers
+        description: Number of unique customers who purchased this product
+        tests:
+          - not_null
+
+      - name: first_sale_date
+        description: Date of first sale for this product
+        tests:
+          - not_null
+
+      - name: last_sale_date
+        description: Date of most recent sale for this product
+        tests:
+          - not_null
+
+      - name: days_since_last_sale
+        description: Number of days since the product was last sold
+        tests:
+          - not_null
+
+      - name: total_units_sold
+        description: Total quantity of units sold
+        tests:
+          - not_null
+
+      - name: total_revenue
+        description: Total revenue generated by this product
+        tests:
+          - not_null
+
+      - name: revenue_per_customer
+        description: Average revenue per customer for this product
+        tests:
+          - not_null
+
+      - name: avg_unit_price
+        description: Average unit price across all transactions
+        tests:
+          - not_null
+
+      - name: min_unit_price
+        description: Minimum unit price observed
+        tests:
+          - not_null
+
+      - name: max_unit_price
+        description: Maximum unit price observed
+        tests:
+          - not_null
+
+      - name: stddev_unit_price
+        description: Standard deviation of unit prices
+
+      - name: price_tier
+        description: Price positioning of the product
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['Premium', 'Mid-Range', 'Value']
+
+      - name: avg_quantity_per_transaction
+        description: Average quantity sold per transaction
+        tests:
+          - not_null
+
+      - name: min_quantity_per_transaction
+        description: Minimum quantity in a single transaction
+        tests:
+          - not_null
+
+      - name: max_quantity_per_transaction
+        description: Maximum quantity in a single transaction
+        tests:
+          - not_null
+
+      - name: revenue_segment
+        description: Product performance segment based on revenue
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['Star Product', 'High Performer', 'Medium Performer', 'Low Performer']
+
+      - name: volume_segment
+        description: Product performance segment based on volume
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['High Volume', 'Medium Volume', 'Low Volume']
+
+      - name: created_at
+        description: Timestamp when the record was created
+        tests:
+          - not_null
+
+      - name: updated_at
+        description: Timestamp when the record was last updated
+        tests:
+          - not_null

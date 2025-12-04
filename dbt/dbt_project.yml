@@ -1,0 +1,78 @@
+name: 'customer_transactions_dw'
+version: '1.0.0'
+config-version: 2
+
+# Project profile
+profile: 'ebury'
+
+# Directories
+model-paths: ["models"]
+analysis-paths: ["analyses"]
+test-paths: ["tests"]
+seed-paths: ["seeds"]
+macro-paths: ["macros"]
+snapshot-paths: ["snapshots"]
+
+target-path: "target"
+clean-targets:
+  - "target"
+  - "dbt_packages"
+
+# Model configurations
+models:
+  customer_transactions_dw:
+    # Staging models - temporary tables, full refresh
+    staging:
+      +materialized: table
+      +schema: staging
+      +tags: ['staging']
+      +on_schema_change: 'fail'
+      
+    # Dimension models - SCD Type 1, full refresh
+    dimensions:
+      +materialized: table
+      +schema: analytics
+      +tags: ['dimensions']
+      +on_schema_change: 'append_new_columns'
+      
+    # Fact models - incremental load
+    facts:
+      +materialized: table  # Could be incremental in production
+      +schema: analytics
+      +tags: ['facts']
+      +on_schema_change: 'fail'
+      
+    # Aggregate models - views for flexibility
+    aggregates:
+      +materialized: view
+      +schema: analytics
+      +tags: ['aggregates']
+
+# Seeds configuration
+seeds:
+  customer_transactions_dw:
+    +schema: seeds
+    +quote_columns: false
+
+# Test configurations
+tests:
+  +store_failures: true
+  +schema: dbt_test_failures
+
+# Documentation
+docs-paths: ["docs"]
+
+# Variables (can be overridden at runtime)
+vars:
+  # Date range for incremental loads
+  start_date: '2020-01-01'
+  end_date: '2025-12-31'
+  
+  # Data quality thresholds
+  max_null_percentage: 0.05
+  min_row_count: 1
+
+# Dispatch configurations for compatibility
+dispatch:
+  - macro_namespace: dbt
+    search_order: ['customer_transactions_dw', 'dbt']
