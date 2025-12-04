@@ -1,0 +1,62 @@
+
+from datetime import datetime, timedelta
+from pathlib import Path
+
+from airflow import DAG
+from cosmos import DbtTaskGroup, ProjectConfig, ProfileConfig, ExecutionConfig, RenderConfig
+from cosmos.profiles import PostgresUserPasswordProfileMapping
+
+
+default_args = {
+    'owner': 'airflow',
+    'depends_on_past': False,
+    'start_date': datetime(2025, 12, 3),
+    'email_on_failure': False,
+    'email_on_retry': False,
+    'retries': 1,
+    'retry_delay': timedelta(minutes=2),
+}
+
+
+dag = DAG(
+    'dbt_cosmos_pipeline',
+    default_args=default_args,
+    description='Run dbt models using Cosmos',
+    schedule_interval='@daily',
+    catchup=False,
+    tags=['dbt', 'cosmos', 'data-pipeline'],
+)
+
+# Configure dbt project paths
+DBT_PROJECT_PATH = Path('/opt/dbt')
+DBT_PROFILES_PATH = Path('/opt/dbt')
+
+
+dbt_tg = DbtTaskGroup(
+    group_id='dbt_transformations',
+    project_config=ProjectConfig(
+        dbt_project_path=str(DBT_PROJECT_PATH),
+    ),
+    profile_config=ProfileConfig(
+        profile_name='ebury',
+        target_name='dev',
+        profiles_yml_filepath=str(DBT_PROFILES_PATH / 'profiles.yml'),
+    ),
+    execution_config=ExecutionConfig(
+        dbt_executable_path='/home/airflow/.local/bin/dbt',
+    ),
+    render_config=RenderConfig(
+        select=[
+            'stg_customer_transactions',
+            'dim_customers',
+            'dim_products',
+            'fact_transactions'
+        ],  # Run all models
+    ),
+    operator_args={
+        'install_deps': False,
+    },
+    default_args=default_args,
+    dag=dag,
+)
+
