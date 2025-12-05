@@ -20,6 +20,15 @@ models:
       - Growth rate analysis
       - Customer segmentation by monthly activity
 
+    meta:
+      owner: data-engineering
+      data_steward: business-analytics
+      contains_pii: true
+      pii_columns: ['customer_fk']
+      data_classification: confidential
+      retention_days: 1095  # 3 years (aggregated data, shorter retention)
+      business_domain: sales_analytics
+
     config:
       tags: ['aggregates', 'monthly-sales', 'reporting']
 

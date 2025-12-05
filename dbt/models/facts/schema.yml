@@ -15,6 +15,15 @@ models:
 
       In production, this would typically be materialized incrementally.
 
+    meta:
+      owner: data-engineering
+      data_steward: business-analytics
+      contains_pii: true
+      pii_columns: ['customer_fk']
+      data_classification: confidential
+      retention_days: 2555  # 7 years
+      business_domain: sales_analytics
+
     columns:
       - name: transaction_key
         description: Primary key - unique identifier for each transaction

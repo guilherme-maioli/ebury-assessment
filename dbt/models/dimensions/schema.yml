@@ -13,6 +13,15 @@ models:
       - Customer segmentation (status, tier, value)
       - Behavioral analytics
 
+    meta:
+      owner: data-engineering
+      data_steward: customer-analytics
+      contains_pii: true
+      pii_columns: ['customer_id']
+      data_classification: confidential
+      retention_days: 2555  # 7 years
+      business_domain: customer_analytics
+
     columns:
       - name: customer_key
         description: Primary key for the customer dimension
@@ -152,6 +161,15 @@ models:
       - Price analytics and positioning
       - Volume and revenue segmentation
       - Customer reach metrics
+
+    meta:
+      owner: data-engineering
+      data_steward: product-analytics
+      contains_pii: false
+      pii_columns: []
+      data_classification: internal
+      retention_days: 2555  # 7 years
+      business_domain: product_analytics
 
     columns:
       - name: product_key

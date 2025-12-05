@@ -12,6 +12,15 @@ models:
       - Includes data quality validation flags
       - Handles NULL values appropriately
 
+    meta:
+      owner: data-engineering
+      data_steward: customer-analytics
+      contains_pii: true
+      pii_columns: ['customer_id']
+      data_classification: confidential
+      retention_days: 2555  # 7 years
+      business_domain: sales_analytics
+
     columns:
       - name: transaction_id
         description: Unique identifier for each transaction
