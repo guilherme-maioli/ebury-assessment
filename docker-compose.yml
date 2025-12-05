@@ -16,6 +16,7 @@ x-airflow-common:
     _PIP_ADDITIONAL_REQUIREMENTS: 'dbt-core==1.7.4 dbt-postgres==1.7.4 pandas==2.1.4 astronomer-cosmos'
     # automatically created on startup when start
     AIRFLOW_CONN_POSTGRES_DEFAULT: 'postgresql://airflow:airflow@postgres:5432/ebury'
+    AIRFLOW_VAR_ENV: 'dev'
   volumes:
     - ./airflow/dags:/opt/airflow/dags
     - ./airflow/logs:/opt/airflow/logs
