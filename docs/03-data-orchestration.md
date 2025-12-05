@@ -18,17 +18,17 @@ This document describes how the entire pipeline is orchestrated using Apache Air
 
 ## Overview
 
-**Orchestration Tool**: Apache Airflow 2.7.3
-**Execution Mode**: Local Executor
-**Scheduler**: Daily (`@daily`)
-**Main DAG**: `pipeline_customer_transaction`
+**Orchestration Tool**: Apache Airflow 2.7.3 <br>
+**Execution Mode**: Local Executor <br>
+**Scheduler**: Daily (`@daily`) <br>
+**Main DAG**: `pipeline_customer_transaction` <br>
 
 ### Architecture Components
 
 ```
-┌─────────────────────────────────────┐
-│     Docker Compose Environment       │
-├─────────────────────────────────────┤
+┌────────────────────────────────────┐
+│     Docker Compose Environment     │
+├────────────────────────────────────┤
 │  ┌──────────────┐  ┌─────────────┐ │
 │  │   Airflow    │  │ PostgreSQL  │ │
 │  │  Webserver   │  │  Database   │ │
@@ -37,7 +37,7 @@ This document describes how the entire pipeline is orchestrated using Apache Air
 │  │   Airflow    │                  │
 │  │  Scheduler   │                  │
 │  └──────────────┘                  │
-└─────────────────────────────────────┘
+└────────────────────────────────────┘
 ```
 
 ---
@@ -62,7 +62,7 @@ postgres:
 
 **Serves two purposes**:
 - Airflow metadata database
-- Target database for pipeline (`ebury` database)
+- Target database for pipeline (`ebury` database created manually)
 
 **2. Airflow Webserver**
 ```yaml
@@ -423,33 +423,6 @@ default_args = {
 4. If fails again, mark as failed
 5. Downstream tasks don't execute
 
-### Error Handling in Tasks
-
-**File Validation**:
-```python
-if not Path(csv_path).exists():
-    raise FileNotFoundError(f"CSV file not found: {csv_path}")
-```
-
-**Database Errors**:
-```python
-try:
-    cursor.copy_expert(...)
-    conn.commit()
-except Exception as e:
-    conn.rollback()
-    logger.error(f"Error: {str(e)}")
-    raise
-finally:
-    cursor.close()
-    conn.close()
-```
-
-**Data Validation**:
-```python
-if db_count == 0:
-    raise ValueError("No data loaded into PostgreSQL!")
-```
 
 ### Failure Callbacks
 
@@ -600,16 +573,6 @@ cat /opt/airflow/logs/pipeline_customer_transaction/.../attempt=1.log
 - Click DAG for historical runs
 - Tree view shows run history
 
-**Data Quality Metrics**:
-```bash
-# Via Makefile
-make validate
-
-# Via PostgreSQL
-make shell-postgres
-SELECT COUNT(*) FROM cleaned_data.customer_transactions;
-```
-
 ---
 
 ## Operational Commands
@@ -620,21 +583,14 @@ SELECT COUNT(*) FROM cleaned_data.customer_transactions;
 # Start services
 make up
 
-# Trigger pipeline
-make airflow-trigger-pipeline
-
 # Monitor execution
 make logs-airflow
-
-# List DAGs
-make airflow-dags-list
 
 # Stop services
 make down
 
-# Clean and restart
-make clean-all
-make up
+# restart
+make restart
 ```
 
 ### Via Airflow CLI
@@ -665,9 +621,6 @@ airflow tasks state pipeline_customer_transaction \
 ### DAG Not Appearing
 
 ```bash
-# Check for syntax errors
-make test-dags
-
 # Check scheduler logs
 make logs-scheduler
 
@@ -684,8 +637,6 @@ docker-compose restart airflow-scheduler
 # Or via command line
 make logs-airflow | grep "ERROR"
 
-# Check database connection
-make db-connect
 
 # Manually retry task
 # In UI: Click task → Clear → Confirm
@@ -736,8 +687,8 @@ task3 = validate_data(task2)
 Add context to log messages:
 
 ```python
-logger.info(f"[{parent_group}] Processing {len(df)} rows")
-logger.info(f"[{parent_group}] Loaded {rows_loaded} rows in {duration}s")
+logger.info(f"Processing {len(df)} rows")
+logger.info(f"Loaded {rows_loaded} rows in {duration}s")
 ```
 
 ### 4. Error Handling
@@ -770,13 +721,13 @@ finally:
 
 **Stage 3** provides:
 
-✅ Automated workflow orchestration with Airflow
-✅ Modular pipeline design with `steps/` modules
-✅ Clear task organization with TaskGroups
-✅ Automatic DBT task generation with Cosmos
-✅ Robust error handling and retries
-✅ Easy database connection management via docker-compose
-✅ Comprehensive monitoring and observability
-✅ Simple operations via Makefile commands
+✅ Automated workflow orchestration with Airflow <br>
+✅ Modular pipeline design with `steps/` modules <br>
+✅ Clear task organization with TaskGroups <br>
+✅ Automatic DBT task generation with Cosmos <br>
+✅ Robust error handling and retries <br>
+✅ Easy database connection management via docker-compose <br>
+✅ Comprehensive monitoring and observability <br>
+✅ Simple operations via Makefile commands <br>
 
 The complete pipeline runs daily, processing data from CSV through cleaning, loading, transformation, and aggregation, with full visibility and control through the Airflow UI.
