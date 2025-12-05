@@ -35,74 +35,6 @@ This dbt project transforms cleaned customer transaction data into a dimensional
 
 ---
 
-## Models
-
-### Staging Layer
-
-#### `stg_customer_transactions`
-- **Type**: View
-- **Source**: `cleaned_data.customer_transactions`
-- **Purpose**: Standardized view of cleaned transaction data with enhanced fields
-- **Key Features**:
-  - Date parsing and extraction (year, quarter, month)
-  - Calculated fields (subtotal, total_amount)
-  - Business validation flags
-  - Null handling
-
-### Dimension Layer
-
-#### `dim_customers`
-- **Type**: Table
-- **Grain**: One row per customer
-- **Purpose**: Customer dimension with aggregated metrics and segmentation
-- **Key Metrics**:
-  - Total transactions
-  - Lifetime value
-  - Average transaction value
-  - Purchase frequency
-  - Product diversity
-- **Segmentations**:
-  - Value Segment (VIP, High Value, Medium Value, Low Value)
-  - Frequency Segment (Very Frequent, Frequent, Occasional, Rare)
-  - Recency Segment (Active, Recent, Lapsed, Inactive)
-  - Customer Tier (Platinum, Gold, Silver, Bronze)
-  - AOV Tier (High AOV, Medium AOV, Low AOV)
-
-#### `dim_products`
-- **Type**: Table
-- **Grain**: One row per product
-- **Purpose**: Product dimension with aggregated sales metrics
-- **Key Metrics**:
-  - Total revenue
-  - Total units sold
-  - Average/min/max prices
-  - Unique customers
-  - Transaction frequency
-- **Segmentations**:
-  - Revenue Segment (Star Product, High/Medium/Low Performer)
-  - Volume Segment (High/Medium/Low Volume)
-  - Price Tier (Premium, Mid-Range, Value)
-
-### Fact Layer
-
-#### `fact_transactions`
-- **Type**: Table
-- **Grain**: One row per transaction
-- **Purpose**: Transactional fact table with foreign keys to dimensions
-- **Measures**:
-  - Additive: units_sold, gross_amount, tax_amount, net_amount
-  - Non-additive: unit_price
-- **Foreign Keys**:
-  - customer_fk → dim_customers.customer_key
-  - product_fk → dim_products.product_key
-- **Denormalized Attributes** (for performance):
-  - customer_tier
-  - customer_value_segment
-  - product_name
-  - product_price_tier
-  - product_revenue_segment
-
----
 
 ## Data Flow
 
@@ -193,69 +125,6 @@ Tests defined in `source.yml`:
 - `price`: not_null
 - `tax`: not_null
 
-### Recommended Additional Tests
-
-```yaml
-# In schema.yml
-models:
-  - name: dim_customers
-    columns:
-      - name: customer_key
-        tests:
-          - unique
-          - not_null
-
-  - name: dim_products
-    columns:
-      - name: product_key
-        tests:
-          - unique
-          - not_null
-
-  - name: fact_transactions
-    columns:
-      - name: transaction_key
-        tests:
-          - unique
-          - not_null
-      - name: customer_fk
-        tests:
-          - relationships:
-              to: ref('dim_customers')
-              field: customer_key
-      - name: product_fk
-        tests:
-          - relationships:
-              to: ref('dim_products')
-              field: product_key
-```
-
----
-
-## Business Metrics Available
-
-### Customer Analytics
-- Customer Lifetime Value (CLV)
-- Average Order Value (AOV)
-- Purchase Frequency
-- Customer Retention
-- Customer Segmentation (RFM-like)
-- Customer Acquisition Date
-
-### Product Analytics
-- Product Performance (Revenue, Units)
-- Price Elasticity
-- Product Mix Analysis
-- Product Affinity
-- Inventory Planning Metrics
-
-### Transaction Analytics
-- Daily/Monthly/Quarterly Sales
-- Revenue by Segment
-- Tax Analysis
-- Average Transaction Size
-- Seasonal Patterns
-
 ---
 
 ## Example Queries
@@ -269,7 +138,7 @@ SELECT
     total_lifetime_value,
     total_transactions,
     avg_transaction_value
-FROM analytics.dim_customers
+FROM analytics_dbt_analytics.dim_customers
 ORDER BY total_lifetime_value DESC
 LIMIT 10;
 ```
@@ -283,7 +152,7 @@ SELECT
     SUM(net_amount) AS total_revenue,
     COUNT(*) AS transaction_count,
     AVG(net_amount) AS avg_transaction_value
-FROM analytics.fact_transactions
+FROM analytics_dbt_analytics.fact_transactions
 GROUP BY transaction_year, transaction_month
 ORDER BY transaction_year, transaction_month;
 ```
@@ -353,47 +222,11 @@ dbt run --select +fact_transactions # Rebuild all upstream and fact_transactions
 
 ---
 
-## Integration with Airflow
-
-This dbt project is orchestrated by Airflow using the `dbt_cosmos_dag`:
-
-```python
-# In airflow/dags/dbt_cosmos_dag.py
-dbt_tg = DbtTaskGroup(
-    group_id='dbt_transformations',
-    project_config=ProjectConfig(
-        dbt_project_path='/opt/dbt',
-    ),
-    profile_config=ProfileConfig(
-        profile_name='ebury',
-        target_name='dev',
-    ),
-    # ... additional configuration
-)
-```
-
----
-
-## Troubleshooting
-
-### Common Issues
-
-**Issue**: `relation does not exist`
-**Solution**: Ensure cleaned_data.customer_transactions table exists and is populated
-
-**Issue**: `schema does not exist`
-**Solution**: Create analytics schema: `CREATE SCHEMA IF NOT EXISTS analytics;`
-
-**Issue**: Null values in foreign keys
-**Solution**: Check `is_valid_transaction` filter in fact table
-
----
-
 ## Next Steps
 
 1. **Add Date Dimension**: Create `dim_date` for time-based analysis
 2. **Add Aggregates**: Create monthly/quarterly summary tables
-3. **Add Snapshots**: Implement SCD Type 2 for historical tracking
+3. **Add Snapshots**: Implement for historical tracking
 4. **Add Macros**: Create reusable macros for common calculations
 5. **Add Tests**: Implement comprehensive data quality tests
 6. **Add Documentation**: Add descriptions for all columns and models
