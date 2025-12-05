@@ -1,8 +1,10 @@
 from airflow.hooks.base_hook import BaseHook
 from airflow.contrib.operators.slack_webhook_operator import SlackWebhookOperator
+from airflow.models import Variable
 import os
 
-ENV = os.environ['ENV']
+
+ENV = Variable.get('ENV')
 
 slack_channels ={
     "local": "C03T5TYDGTD",
