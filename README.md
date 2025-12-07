@@ -32,7 +32,6 @@ Raw transaction data contains quality issues:
 - Text values in numeric fields ("Two Hundred", "Fifteen")
 - Prefixed identifiers ('T' and 'P' prefixes)
 - Inconsistent data types
-- Duplicate records
 
 ### Solution
 

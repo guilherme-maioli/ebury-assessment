@@ -5,17 +5,27 @@ Data cleaning functions for customer transactions.
 import pandas as pd
 
 
-def clean_transaction_id(value):
+def clean_id_with_prefix(value, prefix=None):
     """
-    Remove 'T' prefix from transaction_id and convert to integer.
-    Example: 'T1010' -> 1010
+    Remove optional prefix from ID field and convert to integer.
+
+    Args:
+        value: The value to clean
+        prefix: Optional prefix to remove (e.g., 'T', 'P')
+
+    Examples:
+        clean_id_with_prefix('T1010', prefix='T') -> 1010
+        clean_id_with_prefix('P100', prefix='P') -> 100
+        clean_id_with_prefix('1020', prefix='T') -> 1020
     """
     if pd.isna(value):
         return None
 
     value_str = str(value).strip()
-    if value_str.startswith('T'):
-        value_str = value_str[1:]
+
+    # Remove prefix if specified and present
+    if prefix and value_str.startswith(prefix):
+        value_str = value_str[len(prefix):]
 
     try:
         return int(value_str)
@@ -57,24 +67,6 @@ def clean_transaction_date(value):
                 return value_str
 
     return value_str
-
-
-def clean_product_id(value):
-    """
-    Remove 'P' prefix from product_id and convert to integer.
-    Example: 'P100' -> 100
-    """
-    if pd.isna(value):
-        return None
-
-    value_str = str(value).strip()
-    if value_str.startswith('P'):
-        value_str = value_str[1:]
-
-    try:
-        return int(value_str)
-    except (ValueError, TypeError):
-        return None
 
 
 def clean_price(value):

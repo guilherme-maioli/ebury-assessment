@@ -6,10 +6,9 @@ from pathlib import Path
 import pandas as pd
 from airflow.decorators import task
 from steps.data_cleaners import (
-    clean_transaction_id,
+    clean_id_with_prefix,
     clean_customer_id,
     clean_transaction_date,
-    clean_product_id,
     clean_price,
     clean_tax,
 )
@@ -38,10 +37,10 @@ def clean_transactions_pipeline(parent_group):
         print(f"Applying transformations...")
 
         # Apply cleaning functions
-        df['transaction_id'] = df['transaction_id'].apply(clean_transaction_id)
+        df['transaction_id'] = df['transaction_id'].apply(lambda x: clean_id_with_prefix(x, prefix='T'))
         df['customer_id'] = df['customer_id'].apply(clean_customer_id)
         df['transaction_date'] = df['transaction_date'].apply(clean_transaction_date)
-        df['product_id'] = df['product_id'].apply(clean_product_id)
+        df['product_id'] = df['product_id'].apply(lambda x: clean_id_with_prefix(x, prefix='P'))
         df['product_name'] = df['product_name'].str.strip()
         df['quantity'] = pd.to_numeric(df['quantity'], errors='coerce')
         df['price'] = df['price'].apply(clean_price)
